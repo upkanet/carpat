@@ -1,0 +1,23 @@
+{
+  "name": "carpat",
+  "version": "1.0.0",
+  "description": "LLM Knowledge Database from Andrej Karpathy's idea",
+  "homepage": "https://github.com/upkanet/carpat#readme",
+  "bugs": {
+    "url": "https://github.com/upkanet/carpat/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/upkanet/carpat.git"
+  },
+  "license": "ISC",
+  "author": "upkanet",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@google/genai": "^1.50.0"
+  }
+}
