@@ -34,10 +34,18 @@ async function compileWiki() {
                     filesToArchive.push({ name: file, type: 'text' });
                 } 
                 else if (ext === '.pdf') {
-                    const dataBuffer = await fs.readFile(filePath);
-                    const pdfData = await pdf(dataBuffer);
-                    rawContent += `\n--- Source: ${file} (PDF) ---\n${pdfData.text}\n`;
-                    filesToArchive.push({ name: file, type: 'text' });
+                    console.log(`Préparation du PDF (Texte & Images) : ${file}...`);
+                    const pdfBuffer = await fs.readFile(filePath);
+                    
+                    multimodalParts.push({
+                        inlineData: { 
+                            data: pdfBuffer.toString("base64"), 
+                            mimeType: "application/pdf" 
+                        }
+                    });
+                    
+                    rawContent += `\n--- Fichier PDF joint pour analyse intégrale : ${file} ---\n`;
+                    filesToArchive.push({ name: file, type: 'pdf' }); // On archive simplement
                 }
                 else if (['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) {
                     console.log(`Analyse visuelle de : ${file}...`);
