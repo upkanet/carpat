@@ -2,11 +2,12 @@ import { GoogleGenAI } from '@google/genai';
 import fs from 'fs/promises';
 import path from 'path';
 import 'dotenv/config';
+import { dateString } from './tools.js';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const aiModelName = process.env.AI_MODEL;
 const WIKI_DIR = './wiki';
-const OUTPUT_REPORT = './Audit_Axorus.md';
+const OUTPUT_REPORT = `audit/audit-${dateString()}.md`;
 
 async function lintWiki() {
     try {
