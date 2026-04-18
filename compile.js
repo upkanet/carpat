@@ -73,9 +73,9 @@ async function compileWiki() {
         Compile un wiki sur Axorus à partir des textes et images fournis.
         
         IMPORTANT POUR LES IMAGES :
-        Si une image fournie est pertinente pour un article (ex: un schéma technique, un logo, une photo d'équipe), 
-        tu DOIS l'insérer dans le corps de l'article en utilisant la syntaxe Obsidian : ![[NomDuFichier]]
-        Exemple : Si le fichier s'appelle "schema_implant.png", écris ![[schema_implant.png]] à l'endroit opportun.
+        RÈGLES STRICTES SUR LES IMAGES ET LES LIENS :
+        1. Si je te fournis une image isolée (mentionnée explicitement dans les données par "Image jointe disponible : nom.jpg"), tu peux l'insérer dans l'article avec la syntaxe ![[nom.jpg]].
+        2. INTERDICTION FORMELLE de créer des liens ![[ ]] pour les images, graphiques ou captures d'écran que tu vois *à l'intérieur* des fichiers PDF. Tu ne peux pas les extraire. Si un schéma dans un PDF est pertinent, décris-le minutieusement avec du texte ou reproduis ses données sous forme de tableau Markdown.
         
         Réponds uniquement en JSON :
         [{"filename": "Article.md", "content": "# Titre\\n![[image.png]]\\nTexte..."}]
