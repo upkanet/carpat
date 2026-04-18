@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 # Obsidian
 .obsidian/
+
+# base
+base/
