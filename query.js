@@ -5,53 +5,85 @@ import 'dotenv/config';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const aiModelName = process.env.AI_MODEL;
+
 const WIKI_DIR = './wiki';
+const ASSETS_DIR = './wiki/assets'; // Ajustez si vos images sont dans ./wiki/assets
 
 async function queryWiki() {
-    // Récupérer la question tapée dans le terminal (après "node query.js")
     const question = process.argv.slice(2).join(' ');
     
     if (!question) {
         console.log("⚠️ Veuillez poser une question.");
-        console.log("💡 Exemple : node query.js \"Quelles sont les dates clés des essais cliniques d'Axorus ?\"");
         return;
     }
 
     try {
-        // 1. Charger tout le savoir du Wiki en mémoire
+        // 1. Charger le texte du Wiki
         const files = await fs.readdir(WIKI_DIR);
         let wikiContext = '';
         
         for (const file of files) {
             if (file.endsWith('.md')) {
                 const content = await fs.readFile(path.join(WIKI_DIR, file), 'utf-8');
-                wikiContext += `\n--- Fichier Source : ${file} ---\n${content}\n`;
+                wikiContext += `\n--- Fichier : ${file} ---\n${content}\n`;
             }
         }
 
-        console.log(`🧠 Lecture du wiki en cours pour répondre à : "${question}"...`);
+        // 2. Charger les images du dossier Assets (Multimodalité)
+        const multimodalParts = [];
+        try {
+            const assetFiles = await fs.readdir(ASSETS_DIR);
+            for (const file of assetFiles) {
+                const ext = path.extname(file).toLowerCase();
+                if (['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) {
+                    const imageBuffer = await fs.readFile(path.join(ASSETS_DIR, file));
+                    let mimeType = 'image/jpeg';
+                    if (ext === '.png') mimeType = 'image/png';
+                    if (ext === '.webp') mimeType = 'image/webp';
 
-        // 2. Le Prompt système : On force l'IA à n'utiliser QUE le Wiki
-        const prompt = `
-        Tu es un assistant expert spécialisé sur la société Axorus. 
-        Utilise UNIQUEMENT le contexte fourni ci-dessous (qui est ma base de connaissances personnelle) pour répondre.
-        Si la réponse ne se trouve pas dans le contexte, dis-le clairement, n'invente rien.
-        Formate ta réponse en Markdown clair et lisible.
+                    multimodalParts.push({
+                        inlineData: {
+                            data: imageBuffer.toString("base64"),
+                            mimeType: mimeType
+                        }
+                    });
+                }
+            }
+        } catch (e) {
+            console.log("ℹ️ Aucun dossier assets trouvé ou dossier vide.");
+        }
+
+        console.log(`🧠 Analyse du texte et de ${multimodalParts.length} image(s) pour répondre...`);
+
+        // 3. Construction du Prompt
+        const promptText = `
+        Tu es l'expert IA de la base de connaissances Axorus.
+        Tu as accès à tous les articles du wiki (texte) ET aux images de la base (fournies en pièces jointes).
         
-        CONTEXTE DE LA BASE DE CONNAISSANCES :
+        Réponds à la question en utilisant ces deux sources. Si la réponse est visible sur une image, décris-la.
+        Utilise la syntaxe ![[NomDuFichier]] pour citer une image si elle illustre ta réponse.
+        
+        CONTEXTE TEXTUEL :
         ${wikiContext}
         
-        QUESTION DE L'UTILISATEUR :
+        QUESTION :
         ${question}
         `;
 
-        // 3. Appel à l'API
+        // On envoie le texte + TOUTES les images au modèle
         const response = await ai.models.generateContent({
             model: aiModelName,
-            contents: prompt,
+            contents: [
+                {
+                    role: 'user',
+                    parts: [
+                        { text: promptText },
+                        ...multimodalParts
+                    ]
+                }
+            ]
         });
 
-        // 4. Affichage du résultat
         console.log("\n================ RÉPONSE ================\n");
         console.log(response.text);
         console.log("\n=========================================\n");
